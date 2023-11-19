@@ -1,0 +1,53 @@
+@tool
+extends Node3D
+@export var gen=false#generates textures
+@export var nulltex=false#removes all textures
+
+var texx=["res://CITY/preamp/apartment front wall.tres"]#these will need to be named the same as the texture you are replacing. 
+var gens=[]#this is just for caching textures. dont worry about this
+
+class tgen extends Node:
+	var nam=""
+	var tex=null
+
+# there might be a better way to do this... but thats a problem for later..
+func _process(delta):
+	if gen==true:
+		gen=false
+		tex()
+	if nulltex==true:
+		nulltex=false
+		nullmaker()
+	pass
+func nullmaker():
+	var msh=mesh        #if this will be part of a larger set, or located elsewhere, can point to the mesh in the scene.
+	for i in msh.get_surface_count():
+		var mat=str("surface_",i,"/material")
+		msh.set(mat,null)
+func tex():
+  #clears out the texture cache, and loads the texture tres files you added
+	gens.clear()
+	for i in texx.size():
+		var ee=load(texx[i])
+		var ef=ee.get_name()
+		var t=tgen.new()
+		t.nam=ef
+		t.tex=ee
+		#print(m.get_name())
+		gens.append(t)
+			
+	#the "meat and potatoes" of the code
+	var ctr=0
+	var mkr=0
+	var msh=get_child(0).mesh
+	for i in msh.get_surface_count():
+		ctr+=1
+		var mshnam=msh.get(str("surface_",i,"/name"))
+		for o in gens.size():
+			var texnam=gens[o].nam
+			if mshnam==texnam:
+				mkr+=1
+				var mat=str("surface_",i,"/material")
+				msh.set(mat,gens[o].tex)
+		
+	print("counted:",ctr, " materials added:",mkr)
